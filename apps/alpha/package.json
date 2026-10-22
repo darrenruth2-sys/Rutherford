@@ -1,0 +1,12 @@
+{
+  "name": "rutherford-alpha",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Rutherford Alpha: paper trading and forecast lab with live crypto prices. Fake money only.",
+  "main": "server.cjs",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test"
+  }
+}

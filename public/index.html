@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rutherford</title>
+<link rel="icon" href="rutherford-neon-r.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c0916">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="vendor/katex.min.css">
+<link rel="stylesheet" href="vendor/hljs-dark.min.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="app">
+  <!-- App switcher: Rutherford chat / Alpha markets -->
+  <nav id="rail" aria-label="Apps">
+    <button class="rail-btn on" data-app="chat" title="Rutherford: chat, code, homework (Alt+1)" aria-label="Rutherford chat"><img src="rutherford-neon-r.png" alt=""></button>
+    <button class="rail-btn alpha" data-app="alpha" title="Alpha: markets & paper trading (Alt+2)" aria-label="Alpha markets"><img src="alpha/alpha-mark.png" alt=""></button>
+  </nav>
+  <!-- Sidebar: conversations -->
+  <aside id="sidebar" aria-label="Chats">
+    <div class="side-top">
+      <button class="brand" id="brandBtn" title="New chat">
+        <img src="rutherford-neon-r.png" alt="">
+        <span>Rutherford</span>
+      </button>
+      <button class="icon-btn only-mobile" id="closeSidebar" aria-label="Close menu">✕</button>
+    </div>
+    <button class="new-chat" id="newChatBtn"><span>＋</span> New chat <kbd>Ctrl K</kbd></button>
+    <input id="searchChats" class="search" type="search" placeholder="Search chats" autocomplete="off">
+    <nav id="convoList" class="convo-list"></nav>
+    <div class="side-bottom">
+      <button class="side-link" id="libraryBtn">📚 Library</button>
+      <button class="side-link" id="settingsBtn">⚙ Settings</button>
+    </div>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <!-- Main chat -->
+  <main id="main">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="openSidebar" aria-label="Open menu">☰</button>
+      <button class="chip" id="projectChip" title="Open a code project folder">📁 <span id="projectName">No project</span></button>
+      <div class="spacer"></div>
+      <button class="chip alpha-chip only-mobile" id="alphaChip" title="Switch to Alpha">◈ Alpha</button>
+      <button class="chip ghost" id="savepointsChip" title="Save points: go back to an earlier version of your project" hidden>⏱<span class="chip-text"> Save points</span></button>
+      <button class="chip ghost" id="modelChip" title="Change model">—</button>
+      <button class="icon-btn" id="panelToggle" title="Side panel" hidden>▤</button>
+    </header>
+
+    <section id="scroller" class="scroller">
+      <div id="thread" class="thread"></div>
+    </section>
+
+    <footer class="composer-wrap">
+      <div id="dropHint" class="drop-hint" hidden>Drop files to attach</div>
+      <div id="resumeRow" class="resume-row" hidden></div>
+      <div class="composer" id="composer">
+        <div id="attachRow" class="attach-row" hidden></div>
+        <textarea id="input" rows="1" placeholder="Message Rutherford…" autocomplete="off"></textarea>
+        <div class="composer-bar">
+          <button class="icon-btn plus" id="attachBtn" title="Attach files, photos, PDFs, Word docs" aria-label="Attach">＋</button>
+          <button class="think-btn" id="thinkBtn" type="button" title="Think harder: slower, but better for tough bugs, math and planning" aria-pressed="false">🧠 Think</button>
+          <button class="think-btn" id="buildBtn" type="button" title="Build mode: plans the job, builds it step by step, tests and fixes as it goes (edits are applied right away, with Undo and save points)" aria-pressed="false">🔨 Build</button>
+          <button class="icon-btn mic" id="micBtn" type="button" title="Voice typing (uses your Groq key)" aria-label="Voice typing" hidden>🎤</button>
+          <input type="file" id="fileInput" multiple hidden>
+          <input type="file" id="libFileInput" multiple hidden accept=".pdf,.docx,.txt,.md,.markdown,.html,.htm,.csv,.json,.js,.ts,.py,.gd,.cs,.java,.cpp,.c,.h,.rs,.go,.lua,.css">
+          <div class="spacer"></div>
+          <button class="send" id="sendBtn" aria-label="Send" disabled>↑</button>
+        </div>
+      </div>
+      <p class="fine">Rutherford can make mistakes. Double-check anything important.</p>
+    </footer>
+  </main>
+
+  <iframe id="alphaFrame" class="app-frame" title="Rutherford Alpha" hidden></iframe>
+
+  <!-- Side panel: previews, diffs, files -->
+  <aside id="panel" class="panel" hidden>
+    <header class="panel-head">
+      <div class="tabs" id="panelTabs"></div>
+      <div class="spacer"></div>
+      <span id="panelActions"></span>
+      <button class="icon-btn" id="panelClose" aria-label="Close panel">✕</button>
+    </header>
+    <div id="panelBody" class="panel-body"></div>
+  </aside>
+</div>
+
+<!-- Settings -->
+<dialog id="settingsDlg" class="dlg">
+  <form method="dialog" class="dlg-inner" id="settingsForm">
+    <header><h2>Settings</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+    <section>
+      <label class="lbl">🧠 Free AI brains</label>
+      <p class="hint" style="margin-top:0">Rutherford uses these in order. When one hits its free limit, it switches to the next one automatically. Keys stay on this computer.</p>
+      <div id="brainsBox"></div>
+      <label class="lbl" for="visionSel">Groq model for photos (Gemini reads photos itself)</label>
+      <select id="visionSel"></select>
+    </section>
+    <section>
+      <label class="lbl" for="customInput">🎭 Custom instructions: how Rutherford talks and acts</label>
+      <textarea id="customInput" rows="4" placeholder="e.g. Call me boss. Be blunt. Roast my code when it sucks. Keep it short unless I ask for detail."></textarea>
+      <div class="row end"><span class="hint" id="customStatus"></span><button type="button" class="btn" id="saveCustom">Save</button></div>
+    </section>
+    <section>
+      <label class="lbl">🛠 Coding tools</label>
+      <div id="capsBox" class="caps"></div>
+      <label class="lbl" for="autoRunSel">Running commands (tests, builds, your app)</label>
+      <select id="autoRunSel"><option value="ask">Ask me every time</option><option value="safe">Run tests &amp; builds automatically, ask for anything else</option></select>
+      <label class="toggle" style="margin-top:10px"><input type="checkbox" id="reviewerToggle"> <span>Second opinion: another brain double-checks code changes</span></label>
+      <label class="toggle"><input type="checkbox" id="savePointsToggle"> <span>Save points: snapshot the project before changes (uses Git)</span></label>
+    </section>
+    <section>
+      <label class="lbl">📱 Phone access</label>
+      <div id="phoneBox"></div>
+    </section>
+    <section>
+      <label class="toggle"><input type="checkbox" id="webToggle"> <span>Let Rutherford search the web and read pages</span></label>
+      <label class="lbl" for="imgTokenInput">Image maker token (optional)</label>
+      <div class="row"><input id="imgTokenInput" type="password" placeholder="Pollinations token, leave empty for free/anonymous" autocomplete="off"><button type="button" class="btn ghost" id="saveImgToken">Save</button></div>
+      <p class="hint">Images are free without a token (about 1 every 15 seconds). A free account at <a href="https://auth.pollinations.ai" target="_blank" rel="noopener">pollinations.ai</a> makes them faster and removes limits.</p>
+    </section>
+    <section>
+      <label class="lbl" for="nameInput">Your name</label>
+      <input id="nameInput" placeholder="What should Rutherford call you?" autocomplete="off">
+      <label class="toggle" style="margin-top:12px"><input type="checkbox" id="autoApprove"> <span>Apply code edits automatically (you can still Undo)</span></label>
+    </section>
+    <section>
+      <label class="lbl" for="memoryInput">Memory — things Rutherford should know about you</label>
+      <textarea id="memoryInput" rows="7" placeholder="- I'm on Windows 11&#10;- I'm studying CS at SNHU&#10;- Keep answers short"></textarea>
+      <div class="row end"><span class="hint" id="memoryStatus"></span><button type="button" class="btn" id="saveMemory">Save memory</button></div>
+    </section>
+    <footer class="hint" id="aboutLine"></footer>
+  </form>
+</dialog>
+
+<!-- Project picker -->
+<dialog id="projectDlg" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header><h2>Code project</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+    <section>
+      <p class="hint">Open a folder so Rutherford can read your code and propose edits. Nothing is changed until you click <b>Apply</b>, and every change can be undone.</p>
+      <label class="lbl" for="projectPath">Folder path</label>
+      <div class="row"><input id="projectPath" placeholder="C:\Users\Darren\Projects\talkntrack" autocomplete="off"><button type="button" class="btn" id="openProject">Open</button></div>
+      <p class="hint">Tip: in File Explorer, click the address bar, copy the path, paste it here.</p>
+      <p class="error" id="projectErr"></p>
+      <div id="recentProjects" class="recent"></div>
+    </section>
+    <section id="projectOpenSection" hidden>
+      <div class="row"><span>Open now: <b id="projectOpenName"></b></span><div class="spacer"></div><button type="button" class="btn ghost" id="closeProject">Close project</button></div>
+    </section>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
+<script src="vendor/highlight.min.js"></script>
+<script src="vendor/katex.min.js"></script>
+<script src="vendor/auto-render.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/mammoth.browser.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

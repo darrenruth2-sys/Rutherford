@@ -1,0 +1,12 @@
+{
+  "name": "rutherford",
+  "version": "20.0.0",
+  "private": true,
+  "description": "Rutherford AI — a chat-first assistant for coding and homework, running locally with Groq.",
+  "main": "server.cjs",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test"
+  }
+}

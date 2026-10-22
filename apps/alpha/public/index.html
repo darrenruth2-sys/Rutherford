@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rutherford Alpha</title>
+<link rel="icon" href="alpha-mark.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="alpha-mark.png" alt=""><span>Rutherford <b>Alpha</b></span></div>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button data-tab="bots" class="on">Bots</button>
+    <button data-tab="markets">Markets</button>
+    <button data-tab="predictions">Predictions</button>
+    <button data-tab="portfolio">Portfolio</button>
+    <button data-tab="live" class="tab-live">Real $</button>
+    <button data-tab="forecasts">Forecasts</button>
+    <button data-tab="ask">Ask Alpha</button>
+  </nav>
+  <span class="paper-badge" id="moneyBadge" title="Bots and bets here use paper money">PAPER</span>
+  <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+</header>
+
+<main>
+  <!-- Bot arena -->
+  <section id="bots" class="view">
+    <div class="view-head">
+      <h1>Bot Arena</h1><span class="muted" id="arenaStatus"></span><div class="spacer"></div>
+      <label class="toggle" title="Bots trade automatically while Rutherford is open"><input type="checkbox" id="arenaToggle"> Bots on</label>
+      <button class="btn ghost" id="tickBtn">Run bots now</button>
+      <button class="btn ghost" id="evolveBtn" title="Make the weakest bot learn from the leader right now">Teach now</button>
+    </div>
+    <p class="lead">Four bots, each with its own paper money, trade crypto, stocks and Polymarket by their own style. Every day the weakest rule bot <b>learns from the leader</b> by copying part of its settings, and the AI bot reads everyone's results before each move.</p>
+    <div id="botCards" class="bot-grid"></div>
+    <div class="panel-box">
+      <div class="box-head"><h2>Account value over time</h2><div class="spacer"></div><div id="arenaLegend" class="legend"></div></div>
+      <div class="chart"><canvas id="arenaChart"></canvas><div class="tip" id="arenaTip"></div></div>
+    </div>
+    <div id="botDetail"></div>
+    <h2>Learning log</h2>
+    <div id="lessons" class="lessons"></div>
+  </section>
+
+  <!-- Markets -->
+  <section id="markets" class="view" hidden>
+    <div class="view-head">
+      <h1>Markets</h1><span class="pill-status" id="marketStatus"></span><span class="muted" id="updated"></span><div class="spacer"></div>
+      <form id="addPair" class="inline"><input id="pairInput" placeholder="Add a stock (AAPL) or crypto (XRP-USD)" autocomplete="off"><button class="btn ghost">Add</button></form>
+    </div>
+    <div id="quoteGrid" class="grid"></div>
+    <div id="detail" class="detail" hidden></div>
+  </section>
+
+  <!-- Predictions (Polymarket) -->
+  <section id="predictions" class="view" hidden>
+    <div class="view-head">
+      <h1>Predictions</h1><span class="muted">Polymarket odds · paper bets</span><div class="spacer"></div>
+      <form id="pmSearch" class="inline"><input id="pmQ" placeholder="Search: Browns, Bitcoin, election…" autocomplete="off"><button class="btn ghost">Search</button></form>
+    </div>
+    <div class="pick-record" id="pickRecord"></div>
+    <div class="chips" id="pmCats">
+      <button data-cat="trending" class="on">🔥 Trending</button><button data-cat="sports">🏈 Sports</button><button data-cat="quick">⚡ 15-min crypto</button><button data-cat="crypto">₿ Crypto</button><button data-cat="politics">🏛 Politics</button>
+    </div>
+    <div id="myBets"></div>
+    <div id="pmList" class="pm-grid"></div>
+    <p class="fine">Prices are the crowd's odds: 63¢ means the market thinks it's about 63% likely, and a winning share pays $1. Paper money only. Real-money Polymarket isn't currently allowed for Ohio residents.</p>
+  </section>
+
+  <!-- Real money -->
+  <section id="live" class="view" hidden>
+    <div class="view-head">
+      <h1>Real Money</h1><span class="live-badge" id="liveBadge">OFF</span><div class="spacer"></div>
+      <button class="btn kill" id="killBtn" title="Turn off real trading and cancel Rutherford's open orders">■ Stop all real trading</button>
+    </div>
+    <div class="warn-box"><b>How it works:</b> pick one bot to follow. When it makes a crypto or stock trade with paper money, Rutherford makes the same move in your Alpaca account, scaled to your budget. Polymarket bets are never copied (not allowed in Ohio). <b>You can lose this money.</b> Start on the Practice account, and only use money you're OK losing.</div>
+    <div id="liveWaiting"></div>
+    <div class="live-grid">
+      <div id="liveSetup" class="panel-box"></div>
+      <div id="liveSide"></div>
+    </div>
+    <h2>Order history</h2>
+    <div id="liveOrders"></div>
+  </section>
+
+  <!-- Portfolio -->
+  <section id="portfolio" class="view" hidden>
+    <div class="view-head"><h1>Paper portfolio</h1><div class="spacer"></div><button class="btn ghost" id="resetBtn">Reset…</button></div>
+    <div id="pfTiles" class="tiles"></div>
+    <h2>Positions</h2><div id="pfPositions"></div>
+    <h2>Prediction bets</h2><div id="pfBets"></div>
+    <h2>Trade history</h2><div id="pfTrades"></div>
+  </section>
+
+  <!-- Forecasts -->
+  <section id="forecasts" class="view" hidden>
+    <div class="view-head"><h1>Forecast lab</h1><div class="spacer"></div><button class="btn" id="runBtn">Run all strategies now</button></div>
+    <p class="lead">Each strategy calls <b>up</b> or <b>down</b> for every pair, 15 min, 1 hour and 4 hours out. Alpha checks the real price when time's up. A strategy only counts as working if it <b>beats the coin flip</b> over enough calls.</p>
+    <div class="auto-row">
+      <label class="toggle"><input type="checkbox" id="autoToggle"> Run automatically every</label>
+      <select id="autoEvery"><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
+      <span class="muted">while Alpha is open</span>
+    </div>
+    <div id="board"></div>
+    <h2>Recent calls</h2><div id="recent"></div>
+    <p><button class="btn ghost small" id="clearForecasts">Clear all forecast history</button></p>
+  </section>
+
+  <!-- Ask -->
+  <section id="ask" class="view" hidden>
+    <div class="chat">
+      <div id="askThread" class="ask-thread"></div>
+      <form id="askForm" class="ask-box">
+        <textarea id="askInput" rows="1" placeholder="Ask about prices, your portfolio, or which strategy is working…"></textarea>
+        <button class="send" id="askSend" aria-label="Send">↑</button>
+      </form>
+      <p class="fine">Alpha sees live prices, your paper portfolio and the forecast scoreboard. Not financial advice.</p>
+    </div>
+  </section>
+</main>
+
+<dialog id="settingsDlg" class="dlg">
+  <form method="dialog" class="dlg-inner">
+    <header><h2>Settings</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+    <section>
+      <label class="lbl" for="keyInput">Groq API key (for Ask Alpha)</label>
+      <div class="row"><input id="keyInput" type="password" placeholder="gsk_…" autocomplete="off"><button type="button" class="btn" id="saveKey">Save</button></div>
+      <p class="hint" id="keyStatus"></p>
+      <label class="lbl" for="modelInput">Model</label>
+      <input id="modelInput" placeholder="openai/gpt-oss-120b">
+    </section>
+    <section>
+      <label class="lbl">Stocks: Alpaca keys (free account, use the <b>paper</b> keys)</label>
+      <input id="alpacaId" placeholder="API Key ID (starts with PK…)" autocomplete="off">
+      <div class="row" style="margin-top:6px"><input id="alpacaSecret" type="password" placeholder="Secret Key" autocomplete="off"><button type="button" class="btn" id="saveAlpaca">Save &amp; test</button></div>
+      <p class="hint" id="alpacaStatus"></p>
+    </section>
+    <section>
+      <label class="lbl">Bots</label>
+      <div class="row"><span style="flex:1">Bots trade every</span><select id="botEvery"><option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></div>
+      <div class="row" style="margin-top:6px"><span style="flex:1">AI bot thinks every</span><select id="aiEvery"><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></div>
+      <div class="row" style="margin-top:6px"><span style="flex:1">Bots learn from each other every</span><select id="evolveEvery"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24">day</option><option value="72">3 days</option><option value="168">week</option></select></div>
+      <label class="toggle" style="margin-top:8px"><input type="checkbox" id="botsPm"> Bots can bet on Polymarket</label>
+      <div class="row" style="margin-top:8px"><span style="flex:1">Restart the arena with</span><input id="arenaCash" type="number" min="100" step="100" style="width:110px"><button type="button" class="btn ghost" id="resetArena">Restart…</button></div>
+    </section>
+    <section>
+      <label class="lbl" for="feeInput">Crypto fee per trade (%). Alpaca charges about 0.25%, Coinbase 0.4–0.6%</label>
+      <input id="feeInput" type="number" step="0.1" min="0" max="5">
+      <label class="lbl" for="stockFeeInput">Stock cost per trade (%) (no commission, this covers the spread)</label>
+      <input id="stockFeeInput" type="number" step="0.01" min="0" max="2">
+      <label class="lbl" for="maxPosInput">Risk rule: max % of account in one coin</label>
+      <input id="maxPosInput" type="number" step="5" min="5" max="100">
+      <div class="row end"><button type="button" class="btn" id="saveRules">Save rules</button></div>
+    </section>
+    <footer class="hint" id="aboutLine"></footer>
+  </form>
+</dialog>
+<div id="toast" class="toast" hidden></div>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
